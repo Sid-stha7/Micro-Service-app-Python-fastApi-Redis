@@ -29,7 +29,7 @@ class Order(HashModel):
     fee: float
     total: float
     quantity: int
-    status: str  # pending, completed, refunded
+    status: str  #options: pending , completed ,shipped, refunded
 
     class Meta:
         database = redis
@@ -43,13 +43,18 @@ def get(pk: str):
     return order
 
 
+#here we will be dealing with the problem of microservice , we will 
+#have to request the product details directly with our product app/microservice
+#this asunc function will run seperately not with the main app so it gets the data from request
+#id , quantity from id we will get all the product information
 @app.post('/orders')
 async def create(request: Request, background_tasks: BackgroundTasks):  # id, quantity
-    body = await request.json()
+    body = await request.json()#getting data thats in request
 
-    req = requests.get('http://localhost:8000/products/%s' % body['id'])
-    product = req.json()
+    req = requests.get('http://localhost:8000/products/%s' % body['id'])#the id is string so from the body id the %s will be replaced with the string id fetched from body
+    product = req.json() 
 
+#now we will be creating the order from customer of that Order class we made up
     order = Order(
         product_id=body['id'],
         price=product['price'],
@@ -69,3 +74,8 @@ def order_completed(order: Order):
     order.status = 'completed'
     order.save()
     redis.xadd('order_completed', order.dict(), '*')
+    #send order dictionary
+    #now when order is completed we have to deduct the item number from our inventotry 
+    #we will use redis stream to send events . it is a messaging event pass
+    #key is order_completed and order is passed as dictionary and the star represents the id of the messeage 
+    #we are sending
