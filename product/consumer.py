@@ -5,7 +5,7 @@ key = 'order_completed'
 group = 'product-group'
 
 try:
-    redis.xgroup_create(key, group)
+    redis.xgroup_create(key, group) #created a group with key and group name
 except:
     print('Group already exists!')
 
@@ -22,6 +22,10 @@ while True:
                     product.save()
                 except:
                     redis.xadd('refund_order', obj, '*')
+                    #if the product was deleted wwhile waiting for 5 sec the 
+                    #email will be send as refunded to customer 
+                    #now when order is completed we have to deduct the item number from our inventotry 
+                    #we will use redis stream to send events . it is a messaging event pass
 
     except Exception as e:
         print(str(e))
