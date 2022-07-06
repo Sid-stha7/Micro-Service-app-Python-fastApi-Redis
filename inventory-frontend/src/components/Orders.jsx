@@ -12,7 +12,7 @@ export const Orders=()=>{
                     const response = await fetch(`http://localhost:8000/products/${id}`);
                     const content = await response.json();
                     const price = parseFloat(content.price) * 1.2;
-                    setMessage(`Your product price is $${price}`);
+                    setMessage(`Your product price is Rs ${price}`);
                 }
             } catch (e) {
                 setMessage('Buy your favorite product')
